@@ -4,13 +4,29 @@
 /////////////////////////////////////////////////
 // BANKIST APP
 
+/////////////////////////////////////////////////
 // Data
-// once the page is reloaded the data refreshes and all the transactions are gone
+
+// DIFFERENT DATA! Contains movement dates, currency and locale
+
 const account1 = {
   owner: 'Jonas Schmedtmann',
-  movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
+  movements: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
   interestRate: 1.2, // %
   pin: 1111,
+
+  movementsDates: [
+    '2019-11-18T21:31:17.178Z',
+    '2019-12-23T07:42:02.383Z',
+    '2020-01-28T09:15:04.904Z',
+    '2020-04-01T10:17:24.185Z',
+    '2020-05-08T14:11:59.604Z',
+    '2020-05-27T17:01:17.194Z',
+    '2020-07-11T23:36:17.929Z',
+    '2020-07-12T10:51:36.790Z',
+  ],
+  currency: 'EUR',
+  locale: 'pt-PT', // de-DE
 };
 
 const account2 = {
@@ -18,24 +34,24 @@ const account2 = {
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
   pin: 2222,
+
+  movementsDates: [
+    '2019-11-01T13:15:33.035Z',
+    '2019-11-30T09:48:16.867Z',
+    '2019-12-25T06:04:23.907Z',
+    '2020-01-25T14:18:46.235Z',
+    '2020-02-05T16:33:06.386Z',
+    '2020-04-10T14:43:26.374Z',
+    '2020-06-25T18:49:59.371Z',
+    '2020-07-26T12:01:20.894Z',
+  ],
+  currency: 'USD',
+  locale: 'en-US',
 };
 
-const account3 = {
-  owner: 'Steven Thomas Williams',
-  movements: [200, -200, 340, -300, -20, 50, 400, -460],
-  interestRate: 0.7,
-  pin: 3333,
-};
+const accounts = [account1, account2];
 
-const account4 = {
-  owner: 'Sarah Smith',
-  movements: [430, 1000, 700, 50, 90],
-  interestRate: 1,
-  pin: 4444,
-};
-
-const accounts = [account1, account2, account3, account4];
-
+/////////////////////////////////////////////////
 // Elements
 const labelWelcome = document.querySelector('.welcome');
 const labelDate = document.querySelector('.date');
@@ -62,502 +78,200 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-// whenevr we get data from a web API, this data usually comes in the form of objects
-// pass the data that the function needs directly into the function rather than creating a global variable
+/////////////////////////////////////////////////
+// Functions
 
 const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
-  //inner html is like textContent, however it also includes all the html classes and styling and sets it to empty
 
-  const moves = sort
+  const movs = sort
     ? acc.movements.slice().sort((a, b) => a - b)
     : acc.movements;
 
-  moves.forEach(function (mov, i) {
+  movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
-    // we use template literals  with html code in js all the time
-    // you can also add template literal to the class name
-    // template literal is literally a life saver here
-    const html = `<div class="movements__row">
-  <div class="movements__type movements__type--${type}">${i + 1} ${type} </div>
 
-  <div class="movements__value"> ${mov} € </div>
-</div>`;
+    const date = new Date(acc.movementsDates[i]); // this converts the string into Java script objects, only than we an work with the data
+
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = date.getFullYear();
+
+    const displayDate = `${day}/${month}/${year}`;
+
+    //nicely formatted time strng, we can use thisstring to create a nicely formatted new date object
+
+    // common technique to loop over 2 arrays at the same time
+    const html = `
+      <div class="movements__row">
+        <div class="movements__type movements__type--${type}">${
+      i + 1
+    } ${type}</div>
+    <div class="movements__date">${displayDate}</div>
+        <div class="movements__value">${mov.toFixed(2)}€</div>
+      </div>
+    `;
+
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
-
-  // now we haveto find a way to adding the html to a webpage here
 };
-//displayMovements(account1.movements);
 
-// containerMovements.insertAdjacentHTML('afterbegin', html);
-//this method accepts two arguments,strings, first
-// First, the position at which we want to attach the html
-// Second the string
-/*
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
-
-/////////////////////////////////////////////////
-
-// methods are simply functions that we can call on objects
-// methods are basically functions attached to objects
-// array are also objects
-// array methods are tools that we can use on arrays
-
-// some simple tools aka array methods
-
-let arr = ['a', 'b', 'c', 'd', 'e'];
-//SLICE METHOD
-//slice method - similar to slice method on strings
-// a slice method is a method in which we can take a slice of the array without changing the original array
-// slice. ('position where you want to start the slice, positions where you want to end the slice)
-// it does not mutate the array it rather creates a new ' sliced array)
-
-console.log(arr.slice(1, 4)); // (3) ['b', 'c', 'd'] // starts at [1] and includes till [3], ends but doesn't include [4]
-console.log(arr.slice(2)); //(3) ['c', 'd', 'e']// if the end parameter is not defined it goes on till the end of the array
-console.log(arr.slice(-2)); // (2) ['d', 'e']//-2 will start counting from the end will take the last two elements//
-// negative begin parameter starts to copy from the end of the array
-console.log(arr.slice(1, -2)); //  ['b', 'c']
-// if you want to create a shallow copy of arr. you can use slice without any parameters
-console.log(arr.slice()); //(5) ['a', 'b', 'c', 'd', 'e']
-// That's the same as using a spread operator and binding it in an array
-console.log([...arr]); //  ['a', 'b', 'c', 'd', 'e']
-console.log(...arr); // a b c d e, spread the elements without binding it in an array
-
-// SPLICE METHOD
-// Works the same way as slice method. The fundamental difference is that it changes or mutates
-// the same array instead of creatin a new array
-// the first parameter in the splice method defines the beginning of the method in the array and
-// the second parameter defines the number of element that we want to delete,
-// the second parameter is called delete count
-
-console.log(arr.splice(2)); // (3) ['c', 'd', 'e']
-// let's see what happens to the original array
-console.log(arr); // (2) ['a', 'b'] // the extraxted elements are gone from the original array
-// if we want to get rid of the last element
-console.log(arr.splice(-1)); // ['b']
-console.log(arr); // ['a']
-
-// if you want to find out about any particular method you canuse mdn documentation
-
-// REVERSE METHOD
-
-const arr2 = ['j', 'i', 'h', 'g', 'f'];
-console.log(arr2.reverse()); // (5) ['f', 'g', 'h', 'i', 'j']
-// reverse method mutates the original array
-console.log(arr2); // (5) ['f', 'g', 'h', 'i', 'j']
-
-// CONCAT METHOD
-// It's used to concatente two arrays
-//linking things together in a series
-// doesn't mutate the original array
-
-const letters = arr.concat(arr2);
-console.log(letters); // ['a', 'f', 'g', 'h', 'i', 'j']
-
-const letters2 = arr2.concat(arr);
-console.log(letters2); // [ 'f', 'g', 'h', 'i', 'j', 'a']
-
-// we can do this the following way aswell
-// using the spread operator. This doesn't mutate the array either
-console.log([...arr, ...arr2]); // (6) ['a', 'f', 'g', 'h', 'i', 'j']
-
-// JOIN METHOD
-
-console.log(letters.join('-')); // a-f-g-h-i-j
-
-// we already know
-// push()
-//shift()
-// pop()
-//unshift()
-// index of()
-// icludes()
-
-// no developer knows these methods by heart
-// you can come back to it or see it in mdn resources
-
-//THE NEW AT METHOD
-
-const arr3 = [23, 11, 64];
-console.log(arr3.at(0)); // 23 same as arr[0]
-// why use at instead of the bracket notationd
-// to get the last element of an array
-
-// two examples of more traditional approaches
-console.log(arr3.slice(-1)[0]); // 64
-console.log(arr3[arr3.length - 1]); // 64
-
-// the at method makes it easier because we can even use - in the method
-// negative index basically starts counting from the last element
-console.log(arr3.at(-1)); // 64
-
-// at method also works on strings
-console.log('jawad'.at(0));
-console.log('jawad'.at(-1));
-
-// we have  already learned how to loop over an array using the for off loop
-// but for each loop is fundamentally different
-
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-// let's start with for of loop
-//for (const movement of movements) {
-
-for (const [i, movement] of movements.entries()) {
-  if (movement > 0) {
-    console.log(`Activity ${i + 1}: ${movement} credited`);
-  } else {
-    console.log(`Activity ${i + 1}: ${Math.abs(movement)} debited`);
-  }
-}
-
-// using for each method to achieve the exact same thing in an  easier way
-// Each with a capital letter
-// for each is a higher order function that requiers a callback function to tell it what to do
-// it's the foreach method that would call the function, we are not calling it ourselves
-// when exactly will the foreach method call the callback function?
-// the for each method loops over the array and for each iteration it calls the callback function
-// it'll pass the current element of the array as an argument
-
-console.log('---------FOREACH---------------');
-
-
-movements.forEach(function (mov, i, arr) {
-  if (mov > 0) {
-    console.log(`Activity ${i + 1}: ${mov} credited`);
-  } else {
-    console.log(`Activity ${i + 1}: ${Math.abs(mov)} debited`);
-  }
-});
-
-// in each iteration the function is called for the corresponding value
-// we get the same result
-// 0 : FUNCTION(200)
-//1: FUNCTION(450)
-//3: function(400)
-
-// for each method is a more cleaner way
-// IN foreach method it's a lot easier to get access to the current index
-// it's the foreach method that calls the callback function in each iteration
-// as it calls the method it passes through the elements of the array
-// but that's not all what it passes through
-// it ALSO passes through the index and the entire array
-// the name of the arguments doesnot matter but what matters is the order
-// THE FIRST ELEMENT ALWAYS NEEDS TO BE THE ELEMENT
-// THE SECOND ELEMENT SHOULD ALWAYS BE THE INDEX
-// AND THE THIRD ELEMENT SHOULD ALWAYS BE THE ENTIRE ARRAY
-// but using the entries method in the for of loop. the first argument is index and the second is value
-// THAT'S BECAUSE THAT'S THE ORDER IN WHICH THE VALUES ARE PASSED IN THE CALLBACK FUNCTION
-// AND OFCOURSE WE DON'T NEED TO USE ALL THE ARGUMENTS, WE CAN USE ONE, TWO OR THREE
-
-// when to use foreach and for of loop
-
-// You cannot break out of the foreach loop. the continue and break statements don't work for the for each method at all!
-
-// if you need to break out of  loop you have to use the for of loop
-
-// FOR EACH METHOD ON MAPS AND SETS
-
-// Maps
-
-const currencies = new Map([
-  ['USD', 'United States dollar'],
-  ['EUR', 'Euro'],
-  ['GBP', 'Pound sterling'],
-]);
-
-currencies.forEach(function (val, key, map) {
-  console.log(`${map}: ${val}`);
-});
-
-// Sets
-
-const currenciesUnique = new Set(['USD', 'GBP', 'USD', 'EURO', 'EURO', 'GBP']);
-console.log(currenciesUnique);
-currenciesUnique.forEach(function (val2, key, map) {
-  console.log(`${map}: ${val2}`);
-});
-
-// sets don't have keys so the second parameter returns value, because that;s all what it returns
-//_ is a throw away variable in javascript. in other words, a variable that's completely unnecessary
-*/
-
-//---------------------Data Transformation----------------------------
-
-// ===============Map Method======================
-
-// It is similar to the for each method for that it loops over the entire array. however, the main difference is that it does not
-// mutate the array rather creates a new array with the call back function
-// Map method is usually even more useful than foreach method
-// because it creates a brand new array and in javascript it's a good practice to create copy of data rather than mutating the original array
-
-// ===============Filter method==============
-// This method filters the array that satisfies a certain condition
-// only elements that pass the specified condition would make it to a NEW filtered array
-
-//===================Reduce Method===================
-
-// Reduce boils down ('reduces) all the elements in an array down to a single value
-//e.g adding all the elements of an array together
-// it creates an accumulator variable that holds the values while all the values in the array
-// are being perormed until the final operation where the accumulator becomes the final value
-//like a snowball that keeps getting bigger and bigger as it moves down that hill
-// the whole process has reduced the whole array into a single value
-// There's NO new array created in this case
-// only the reduced value is returned
-
-//<<<<<<<<<<<<<<  MAP METHOD>>>>>>>>>>>>>>>>>>>>.
-
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-// LET'S SUPPOSE THESE MOVEMENTS ARE IN EURO AND WE NEED TO CONVERT IT INTO $
-
-const euroToUsd = 1.1;
-
-// Functional programming
-// New and modern waqy of doing stuff
-// great for me cuz i'm proefficient in functional programming
-/*
-const conversion = movements.map(function (mov) {
-  return Math.abs(mov * euroToUsd);
-});
-
-console.log(conversion);
-console.log(movements);
-*/
-// we can use arrow function to simplify the call back function
-// this is a preferable way to write code since it's much cleaner, and I like it aswell
-// arrow functions are ideal as callback functions
-
-const conversion = movements.map(mov => Math.abs(mov * euroToUsd));
-
-console.log(conversion);
-console.log(movements);
-
-// Below is the old way of doing stuff, object oriented programming
-let mov2 = [];
-
-for (const mov of movements) {
-  mov2.push(mov * euroToUsd);
-}
-console.log(mov2);
-console.log(movements);
-
-// just like the foreach method, the map method has access to all the three parameters (value, index, array)
-// it's completely ok to have two or morte return statements in a function as long as only one of them is executed at a time
-// with the for each method we console log and that created side effects. for each method creates side effects
-// with the map method we simply return the values and a new array is created in which all the iterations are stored
-// in the map method we didn't create side effects but rather a new array
-const movementsDescription = movements.map(
-  (mov, i) =>
-    `Activity ${i + 1}: ${Math.abs(mov)} ${mov > 0 ? 'credited' : 'debited'}`
-);
-// we do not call the callbackfunction, the higher order function calls the callback function
-console.log(movementsDescription);
-
-// always use return from the callback function
-
-//<<<<<<<<<<<<<<<<<<<<<< map method example>>>>>>>>>>>>>>>>
-
-//const account1 = {
-//  owner: 'Jonas Schmedtmann',
-//  movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
-//  interestRate: 1.2, // %
-//  pin: 1111,
-//};
-//
-//const account2 = {
-//  owner: 'Jessica Davis',
-//  movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
-//  interestRate: 1.5,
-//  pin: 2222,
-//};
-//
-//const account3 = {
-//  owner: 'Steven Thomas Williams',
-//  movements: [200, -200, 340, -300, -20, 50, 400, -460],
-//  interestRate: 0.7,
-//  pin: 3333,
-//};
-//
-//const account4 = {
-//  owner: 'Sarah Smith',
-//  movements: [430, 1000, 700, 50, 90],
-//  interestRate: 1,
-//  pin: 4444,
-//};
-//
-//const accounts = [account1, account2, account3, account4];
-// compute username
-
-// username would be the initials
-
-const user = 'Steven Thomas Williams'; //stw
-console.log(user);
-const username = user
-  .toLowerCase()
-  .split(' ')
-  .map(val => val[0])
-  .join(''); // (3) ['steven', 'thomas', 'williams']
-console.log(username);
-
-//const createUsernames = function (user) {
-//  return user
-//    .toLowerCase()
-//    .split(' ')
-//    .map(val => val[0])
-//    .join('');
-//};
-
-console.log(accounts);
+const calcDisplayBalance = function (acc) {
+  acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
+};
+
+const calcDisplaySummary = function (acc) {
+  const incomes = acc.movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = `${incomes.toFixed(2)}€`;
+
+  const out = acc.movements
+    .filter(mov => mov < 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumOut.textContent = `${Math.abs(out.toFixed(2))}€`;
+
+  const interest = acc.movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * acc.interestRate) / 100)
+    .filter((int, i, arr) => {
+      // console.log(arr);
+      return int >= 1;
+    })
+    .reduce((acc, int) => acc + int, 0);
+  labelSumInterest.textContent = `${interest.toFixed(2)}€`;
+};
 
 const createUsernames = function (accs) {
   accs.forEach(function (acc) {
     acc.username = acc.owner
       .toLowerCase()
       .split(' ')
-      .map(val => val[0])
+      .map(name => name[0])
       .join('');
-    // in this function we do not return anything because what we're doing is to produce a side effect
   });
 };
 createUsernames(accounts);
-console.log(accounts);
 
-const calcDisplayBalance = function (acc) {
-  acc.balance = acc.movements.reduce((acc, val) => acc + val, 0);
-  labelBalance.textContent = `${acc.balance} €`;
-};
-// label is all the code that we represent by text, very useful for document.query selector
-//calcDisplayBalance(account1.movements);
-
-const calcDisplaySummary = function (acc) {
-  const incomes = acc.movements
-    .filter(mov => mov > 0)
-    .reduce((acc, curr) => acc + curr, 0);
-  labelSumIn.textContent = `${incomes}€`;
-};
-
-//calcDisplaySummary(account1.movements);
-
-const calcDisplaySummaryOut = function (acc) {
-  const outgoing = acc.movements
-    .filter(mov => mov < 0)
-    .reduce((acc, curr) => acc + curr, 0);
-  labelSumOut.textContent = `${Math.abs(outgoing)}€`;
-};
-
-//calcDisplaySummaryOut(account1.movements);
-
-const interest = function (acc) {
-  const inter = acc.movements
-    .filter(mov => mov > 0)
-    .map(dep => (dep * acc.interestRate) / 100)
-    .reduce((acc, int) => acc + int, 0);
-
-  labelSumInterest.textContent = `${inter >= 1 ? inter : 0} €`;
-};
-const displayUI = function (acc) {
-  //Display movements
+const updateUI = function (acc) {
+  // Display movements
   displayMovements(acc);
+  //refactoring.. makking it easierto implement new functions as time moves on
+
   // Display balance
   calcDisplayBalance(acc);
-  //Display summary
-  calcDisplaySummary(acc);
-  calcDisplaySummaryOut(acc);
-  interest(acc);
-};
-// Event handler
 
+  // Display summary
+  calcDisplaySummary(acc);
+};
+
+///////////////////////////////////////
+// Event handlers
 let currentAccount;
 
-btnLogin.addEventListener('click', function (e) {
-  // prevent the form from submitting
-  // as we hit enter while on the username or pin field, we would get more and more click events
-  // this is because it's the same as clicking the login button
+//FAKE ALWAYS LOGGED IN
 
+currentAccount = account1;
+updateUI(currentAccount);
+containerApp.style.opacity = 100;
+
+const now = new Date();
+const day = `${now.getDate()}`.padStart(2, 0);
+
+// .padstart(finallength, start number in case the length is less than the final length), you can only use this method on strings
+const month = `${now.getMonth() + 1}`.padStart(2, 0);
+const year = now.getFullYear();
+const hour = `${now.getHours()}`.padStart(2, 0);
+const mins = `${now.getMinutes()}`.padStart(2, 0);
+
+labelDate.textContent = `${day}/${month}/${year}, ${hour}:${mins}`;
+
+// format it as day/month/year
+// internationalisation.. to format date and time according to the users location
+
+btnLogin.addEventListener('click', function (e) {
+  // Prevent form from submitting
   e.preventDefault();
+
   currentAccount = accounts.find(
     acc => acc.username === inputLoginUsername.value
   );
-  // if no element matches the condition the find method would return undefined
-  // console.log(currentAccount);
-  if (currentAccount?.pin === Number(inputLoginPin.value)) {
-    //? is optional chaining, basically like currentAccount&&curentAccount.pin, to avaoid errors if other value is input
-    // we need to convert the value to a number as the .value is always a string
-    //display UI and welcome message
+  console.log(currentAccount);
 
-    labelWelcome.textContent = `Welcome ${currentAccount.owner.split(' ')[0]}`;
+  if (currentAccount?.pin === +inputLoginPin.value) {
+    // Display UI and message
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }`;
     containerApp.style.opacity = 100;
 
-    // clear the input fields
+    //create current time
+
+    const now = new Date();
+    const day = `${now.getDate()}`.padStart(2, 0);
+
+    // .padstart(finallength, start number in case the length is less t
+    const month = `${now.getMonth() + 1}`.padStart(2, 0);
+    const year = now.getFullYear();
+    const hour = `${now.getHours()}`.padStart(2, 0);
+    const mins = `${now.getMinutes()}`.padStart(2, 0);
+
+    labelDate.textContent = `${day}/${month}/${year}, ${hour}:${mins}`;
+
+    // Clear input fields
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
-    inputLoginUsername.blur();
 
-    displayUI(currentAccount);
+    // Update UI
+    updateUI(currentAccount);
   }
-
-  //console.log('LOGIN');
 });
-
-//>>>>>>>>>>>><<<<<<Transferring money from one account to the other>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<
 
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
-  // without this if we click it'll reload the page
-  // an issue pretty common with forms
-  // we have to use preventdefault() method quite a bit
-  const amountTrans = Number(inputTransferAmount.value);
+  const amount = +inputTransferAmount.value;
   const receiverAcc = accounts.find(
-    acc => acc?.username === inputTransferTo.value
+    acc => acc.username === inputTransferTo.value
   );
+  inputTransferAmount.value = inputTransferTo.value = '';
 
-  console.log(amountTrans, receiverAcc);
-  inputTransferTo.value = inputTransferAmount.value = '';
   if (
-    amountTrans > 0 &&
+    amount > 0 &&
     receiverAcc &&
-    amountTrans <= currentAccount.balance &&
-    receiverAcc.username !== currentAccount.username // if this username doesn't exist than the whole and operation would not execute
+    currentAccount.balance >= amount &&
+    receiverAcc?.username !== currentAccount.username
   ) {
-    //Doing the transfer
+    // Doing the transfer
+    currentAccount.movements.push(-amount);
+    receiverAcc.movements.push(amount);
 
-    currentAccount.movements.push(-amountTrans);
-    receiverAcc.movements.push(amountTrans);
-    displayUI(currentAccount);
+    currentAccount.movementsDates.push(new Date().toISOString());
+    receiverAcc.movementsDates.push(new Date().toISOString());
+
+    // Update UI
+    updateUI(currentAccount);
   }
-
-  inputTransferTo = blur();
-  inputTransferAmount = blur();
 });
-
-//>>>>>>>>>>>>>>>>>>>>>>> some method <<<<<<<<<<<<<<<<<<<<<<
-
-// the account owner only gets tyhe loan if there's atleadst one transaction of the minimum 10 percent of the requested loan
 
 btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
 
-  const amount = Number(inputLoanAmount.value);
-  // whgenever we see or hear the word any, we know it's a good use case for the sum method
+  const amount = Math.floor(inputLoanAmount.value); // we don't need to convert to the number because math.floor actually converts to the number or type coercion for us
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
-    // add tthe movement
-
+    // Add movement
     currentAccount.movements.push(amount);
-    displayUI(currentAccount);
-  }
 
+    // Add time
+
+    currentAccount.movementsDates.push(new Date().toISOString()); // this will automatically create the correct format
+
+    // Update UI
+    updateUI(currentAccount);
+  }
   inputLoanAmount.value = '';
 });
-
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Find Index method <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-// find index returns the index of the found element
 
 btnClose.addEventListener('click', function (e) {
   e.preventDefault();
@@ -566,480 +280,306 @@ btnClose.addEventListener('click', function (e) {
     inputCloseUsername.value === currentAccount.username &&
     Number(inputClosePin.value) === currentAccount.pin
   ) {
-    inputCloseUsername.value = inputClosePin.value = ' ';
-
-    console.log('valid DEL');
     const index = accounts.findIndex(
-      // findindex would return the index of the first element for which the condition we've specified is true
       acc => acc.username === currentAccount.username
-      // both find and findindex method get access to the current array parameter and both were introduced in ES6
     );
     console.log(index);
-    // delete account
+    // .indexOf(23)
+
+    // Delete account
     accounts.splice(index, 1);
-    // hide UI
+
+    // Hide UI
     containerApp.style.opacity = 0;
-    // splice method mutates the underlying array itself so no need to save the result anywhere
-    // currentAccount.findIndexof(i => accounts.splice(i));
   }
 
   inputCloseUsername.value = inputClosePin.value = '';
 });
 
-//>>>>>>>>>>>>>>>>>>>>>sort button>>>>>>>>>>>>>>>>>>>>>
-
 let sorted = false;
-
 btnSort.addEventListener('click', function (e) {
   e.preventDefault();
   displayMovements(currentAccount, !sorted);
   sorted = !sorted;
 });
 
-// using the reduce method to add the balance and print the total balance
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// LECTURES
 
-// You can't call the method on a function that you have defined as a const variable. after the equal sign there must be a function
-// each function should receive the data that it works with rather than a global variable
-// you can only call the join method on an array
-// side effects is to do some work i-e adding a kay and value without returning anything
-
-//console.log(username.join(' ')) // steven thomas williams
-
-//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<FILTER METHOD >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-// WE SPECIFY THE CONDITION BY CALLIN A CALLBACK FUNCTION
-// just like foreach and map method, this method also gets acceseed thru the current element, value, index and array
-
-const deposits = movements.filter(function (mov) {
-  return mov > 0;
-});
-
-console.log(deposits);
-
-const deps = [];
-for (const mov of movements) {
-  if (mov > 0) deps.push(mov);
-}
-
-console.log(deps);
-
-const withdrawals = movements.filter(function (mov) {
-  const withdrawn = mov < 0;
-  return Math.abs(withdrawn);
-});
-
-console.log(withdrawals);
-
-// the good thing about functional programming is that we can chain the methods together to build something more effeciently
-
-//<<<<<<<<<<<<<<<<<<<<<<<<<<Reduce Method >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-// example adding up all the numbers in one array
-// let's add up all the elements of the movement array
-
-console.log(movements);
-
-// by adding all the values in the array we'll end up with the global balance of trhe account
-
-//const balance = movements.reduce(function (
-//  accumulator,
-//  currentValue,
-//  index,
-//  array
-//) {
-//  console.log(`iteration number: ${index} : ${accumulator}`);
-//  return accumulator + currentValue;
-//},
-//10);
-
-// in the reduce emethod the first element is the accumulator
-// it's essentially the snowball that keeps adding the value until the last iteration by which the accumulator becomes the final value
-// reduce (function(accumulator, ))
-// the rest of the arguments in a reduce method are the same as the other methods
-// In the reduce mwthod we also need to specify the initial value and it comes after the paranthesis of the function after a comma
-// if the value is not added, it's assumed to be zero by the method
-
-// doing the same thing manually with a for loop
-
-let balance2 = 10;
-for (let mov of movements) {
-  balance2 += mov;
-  //console.log(balance2);
-}
-
-// starts to become very cumbersome when we have to do many loops for many operations
-// in abn arrow function, when using more thsn one execution use return, otherwise it'll give youy undefined error
-
-const balance = movements.reduce((accumulator, currentValue, index) => {
-  console.log(`iteration number: ${index} : ${accumulator}`);
-  return accumulator + currentValue;
-}, 0);
-//console.log(balance);
-
-// even simpler way, using an arrow function
-// with reduce method we can also do a lot of other stuff
-
-// for eg calculate the maximum value of the movement array
-console.log(movements);
-
-const returnedValues = movements.reduce(function (acc, cur) {
-  return acc < cur ? acc : cur;
-}, movements[0]);
-// the returned value always go to the accumulator
-// in other words the accumulator, collects or accumulates the returned values
-// the reduce method is one of the most powerful array method and is used extensively
-// it's difficult for others to understand
-console.log(returnedValues);
-
-//______________Chaining methods______________
+// In Javascript internally all numbers are represented as floating point numbers
+// in other words always as decimals no matter if we write them as integers or decimals
+console.log(23 === 23.0); // true
+// numbers are represented internally as 64 base two format i-e numbers are always stored in binary format
+//i-e 0 and 1
+// in the binary form it's very hard to represent some fractions that are actually very easy in the base ten system
 
-// we can do all the operations individually and store the results in variables. However, we can do it all at one go aswell
-//
-const depositsUSD = function (moves) {
-  const depositToUsd = moves
-    .filter(mov => mov > 0) // let's suppose we mad a mistake here by making it < rather than > 0
-    //  .map(mov => mov * euroToUsd)
-    .map((mov, i, arr) => {
-      console.log(arr);
-      return mov * euroToUsd;
-    }) // we can log the arry here to see which values in the array were returned from the filter method
-    .reduce((acc, mov) => acc + mov, 0);
-  console.log(depositToUsd);
-};
-
-depositsUSD(movements);
+console.log(0.1 + 0.2); // 0.30000000000000004 - running joke- javascript has no better way to represent this
+// you can't do very precise scientific or financial calculations in Javascript
+// eventually you'll run into problems like these
 
-// we can chain as many methods as we like as long as the first method or the method that is chained to returns a new array
-// we cannot chain a method to reduce because it returns a value
-// Analogous to pipeline/ the data that we input to the chain comes out on the other end of the pipeline after being processed
-// through different chains
-// one drawback of chainig is that it's relatively hard to debug problems
-// it's hard to figure out where the leak is at the pipeline
-// however, we can use arr to debug
-// we can log arrays, using the third parameter of the callback function at anytime to debug or find out where the leak is in the pipeline
-// working with these three methods gives us huge benefits compared to simply loops like for loops and for each loop
-// do not over use chaining
-// optimise chaining
-// because chaining one method after the other can cause huge performance issues especially for huge arrays
-// it's a bad practise in javascript to chain methods that mutate the underlying array for eg splice method
-// usually always a good practise to avoid mutating arrays
-
-//>>>>>>>>>>>>>>>>>>>>>>>> The some and every method <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-// let's look at the includes method
-
-console.log(movements);
-console.log(movements.includes(-130));
-// same as below
-
-const anyDeposits2 = movements.some(dep => dep === -130);
-console.log(anyDeposits2);
-
-// for equality we use include
+console.log(0.1 + 0.2 === 0.3); // expected result is true but the resulat in javascript is false- error that we have to accept
 
-// we can use the includes method to test if an array contains a certain value
-// include method only tests fdor equality
-// if we want to test for a condition that's where the some method comes into play
-// let's say we want to know if there has been any positive movement in this account
-
-const anyDeposits = movements.some(dep => dep > 5000);
-console.log(anyDeposits);
+//Conversion
 
-//>>>EVERY METHOD<<<<
-// close cousin of the some method
-// every returns true if all the elements in an array satisfy the condition of the method
+console.log(Number('23')); // will be the same as
+console.log(+'23'); // that's because when javascrpt sees the + sign it does type coercion
+// purple colour represents numbers
+// if you save after the + sign the prettier extension would get rid of the paranthesis
 
-console.log(movements.every(mov => mov > 0));
-console.log(account4.movements.every(mov => mov > 0));
+// Parsing
+// we can parse a number from a string
+// using built in method
+// Number object- because every function is also an object
+console.log(Number.parseInt('30px', 10)); //30 , Javascript recognised the number and pasrsed it from the string
+// - the string needs to start with a number, takes second argument that defines the base of the number we're working with, default 10
+// but could be any
+console.log(Number.parseInt('px30', 10)); // NaN
 
-// by tghis time we have directly written the callback function as an argument to our array methods
+// also parse float method
 
-// we could also write this function seperately and pass the function as a callback
+console.log(Number.parseFloat(' 2.5rem ')); // 2.5 nice to be able to read a number out of a string
+console.log(Number.parseInt(' 2.5rem ')); // 2
 
-// SEPERATE CALLBACK
-// better for the DRY principal
-const deposit = mov => mov > 0;
-console.log(movements.some(deposit));
-console.log(movements.every(deposit));
-console.log(movements.filter(deposit));
+// These parsing functions are global functions which means that they can be called without Number 'name space'
 
-// flat and flatmap method
-// let's say we have a nested array
+console.log(parseFloat('2.5rem'));
+// but this is the oldschool way of representing them using Number - name space is encouraged
 
-const arr = [[1, 2, 3], [4, 5, 6], 7, 8];
+// used to check if the value is not a number
+console.log(Number.isNaN(20)); // false   this function or object on the number namespace checks if the value is not a number
+console.log(Number.isNaN('20')); // this alo is not not a number
+console.log(Number.isNaN(+'20x')); // true
+console.log(Number.isNaN(23 / 0)); // false infinity is also a number in javascript, but not in mathematics
 
-// form one big array consisting all the sub arrays
-// we use the new flat method
-// flat and flat map were introducd in es2019 so won't work with super old browsers
-// no callback function is required for the flat method
-// flat method only goes one level deep when flatening the array by default
-// however you can manage the depth of the method with the argumenet flat(2) would go 2 levels deep
-// you can only use flat method on arrays not objects
-console.log(arr.flat());
+// so a better way would be using the infinite method on the number name space
 
-const arrDeep = [[[1, 2], 3], [4, [5, 6]], 7, 8];
-console.log(arrDeep.flat(2));
+console.log(Number.isFinite(20 / 0)); // false
+console.log(Number.isFinite('20')); // false because it's not a number
 
-const accountsMovements = accounts.map(acc => acc.movements);
-console.log(accountsMovements);
+// therefore isFinite is a better way to check if the value is a number atleast when working with floating point numbers
 
-// using a map first and the flattening out is a pretty common operation in JS
-// to solve this there's also another method called flat map, which essentially combines flat and map methods
+// To check if a number is an integer
 
-const allArrays = accountsMovements.flat();
-console.log(allArrays);
+console.log(Number.isInteger(20)); // true
 
-const totalMonies = allArrays.reduce((acc, cval) => acc + cval, 0);
-console.log(totalMonies);
+console.log(Number.isInteger(20.0)); // true
 
-// flatMap
+console.log(Number.isInteger(20.33)); // false
 
-const accountsMovements2 = accounts.flatMap(acc => acc.movements); // Map with the capital M // essentially a map method that flattens the array at the end, requires a callback function like the map method
-// flat map only goes one level deep and we cannot change it so if we want to go deeper we use the methods seperately
-console.log(accountsMovements2);
+console.log(Number.isInteger(23 / 0)); // false
 
-const totalMonies2 = allArrays.reduce((acc, cval) => acc + cval, 0);
-console.log(totalMonies2);
+// mathematical operators
 
-//>>>>>>>>>>>>>>>SORTING ARRAYS>>>>>>>>>>>>>>>>>>>>>>>
+// square root- inthe math name space
 
-// sorting is a much talked about subject in computer science
-// there are countless methods and algorithms to sort
-//we'll use javascript built in sort method
+console.log(Math.sqrt(25)); // 5
 
-const owners = ['Jonas', 'Zach', 'Adam', 'Martha'];
-console.log(owners.sort()); // array nicely sorted alphabetically (4) ['Adam', 'Jonas', 'Martha', 'Zach']
-// sort method mutates the original array. be very careful with this method
+// exponentiation we use **
 
-// numbers
+console.log(25 ** (1 / 2)); //5
 
-console.log(movements);
-console.log(movements.sort()); // [-130, -400, -650, 1300, 200, 3000, 450, 70], numbers are not ordered because the sort method does the sorting based on strings not numbers
-// we can fix this by passing in a compare callback function in the sort method
-// in sorting if we return < 0 - ordere maintained of the two elemensts being compared
-// however, if we return >0 i-e return 1- order is reversed between a and b
-// Ascending order
-const movementsAsc = movements.sort(function (a, b) {
-  if (a > b) return 1; // switch order
+console.log(27 ** (1 / 3)); //3. The only way to calculate cubic root
 
-  if (a < b) return -1; // keep order
-});
-console.log(movementsAsc);
-// for numbers in ascending order we can greatly simplify this by writing
+// Maximum value
+console.log(Math.max(5, 18, 23, 12, 10)); //23
+console.log(Math.max(5, 18, '23', 12, 10)); //23 this function does type coercion . howver it does not do parsing
 
-const movementsAscNumbers = movements.sort((a, b) => a - b); // if we return zero i-e the values of both the elements is same than the position simply remains the same
+// Minimum Value
 
-console.log(movementsAscNumbers);
-// descending
+console.log(Math.min(5, 18, 23, 12, 10)); // 5
 
-const movementsDsc = movements.sort(function (a, b) {
-  if (a > b) return -1;
+// object or name space is the same thing
 
-  if (a < b) return 1;
-});
-console.log(movementsDsc);
-// for numbers in desending order
+// radius of the circle with 10 px
+// calculate area
+console.log(Math.PI * Number.parseFloat('10 px') ** 2);
 
-const movementsDscNumbers = movements.sort((a, b) => b - a);
-console.log(movementsDscNumbers);
+// Generating Random numbers
 
-// in case of a mixed array do not use the sort method as it's not going to work properly, no point
+console.log(Math.trunc(Math.random() * 5) + 1);
 
-// this method would also work for strings
-// if we're working with numbers then we could simplify this a lot by using some simple maths
+// generalise this formaula to always generate random integers between two values
 
-// <<<<<<<<<<<<<<<<<<How to programmatically create and fill arrays<<<<<<<<<<<<<<<<<<<<<<<<
-// we can generate arrays programmatically rather than manually
+const randomInt = (min, max) =>
+  Math.trunc(Math.random() * (max - min + 1)) + min; // math.random() generates 0 but doesnot generate 1
+console.log(randomInt(1, 6));
 
-// Empty arrays and the fill method
+// Rounding all these methods also do type coercion
+// Rounding integers
 
-const arrr = [1, 2, 3, 4, 5, 6, 7];
-console.log(new Array(1, 2, 3, 4, 5, 6, 7));
+console.log(Math.trunc(23.3)); // 23
+// removes the decimal part
+console.log(Math.round(23.3)); //23
+console.log(Math.round(23.9)); //24 Rounds off to the nearest integer
+console.log(Math.round(23.5)); //24 - the ususual math rounding rules
 
-const x = new Array(7);
-console.log(x); // [empty × 7]
-// weird result with one argument it only displays the number of 7 empty spaces
-// we can't even call any methods, except fill, on this empty array
-// we can call the fill method on an empty array
+//Round up
 
-//x.fill(1); // fill method mutates the underlying array
+console.log(Math.ceil(23.1)); //24
+console.log(Math.ceil(23.9)); //24
 
-//x.fill(what we want to fill, index where to start, index where to end)
+// round down
 
-const arrFill = arrr.fill(23, 4, 6);
-console.log(arrFill); // (7) [1, 2, 3, 4, 23, 23, 7]
+console.log(Math.floor(23.1)); //23
+console.log(Math.floor('23.9')); // 23
 
-console.log(x); // (7) [1, 1, 1, 1, 1, 1, 1]
+// floor and trunc are the same for positive numbers
+// however, for negative numbers they are not
 
-// Array.from method
-const y = Array.from({ length: 7 }, () => 1);
-// Array.from({length object, callback function, exactly like the map method callback function})
-console.log(y); // (7) [1, 1, 1, 1, 1, 1, 1]
-// to create an array
+console.log(Math.trunc(-23.3)); // -23
+console.log(Math.floor('-23.3')); //-24  going even more down to the floor i-e -24. floor is better to use than trunc because it takes negative numbers into account aswell
 
-const z = Array.from({ length: 7 }, (_, i) => i + 1); // it's a convention to use _ if we're not using a parameter
-console.log(z);
+// Rounding floating point numbrs or decimals
 
-const dice = Array.from(
-  { length: 100 },
-  cur => Math.round(Math.random(cur) * 5) + 1
-);
-console.log(dice);
+console.log((2.7).toFixed(0)); // use paranthesis for the value  and the argument within the method tells the number of decimal places
+console.log((2.75985).toFixed(4)); // a string is returned because of weird javascript behaviour
+// to fix that we can convert to a number by
+console.log(+(2.7564).toFixed(3)); // 2.756 number
+
+// Remainder Operator
+
+console.log(5 % 2); // 5 remainder 2 = 1 => 5= 2* 2 +1
+console.log(8 % 3); // 2
+console.log(27 % 4); // 3
+
+// even or odd
+
+// number is even if it's divisible by 2, if not it's odd => i-e the remainder of it divided by 2 is 0, if the remainder divided by 2 is 1 it's odd
+
+console.log(6 % 2); // 0 it's an even number
+console.log(10987 % 2); //1 so it's an odd number
+
+const isEven = num =>
+  num % 2 ? console.log('is odd') : console.log('is even');
+
+isEven(33);
+
+isEven(40);
 
 labelBalance.addEventListener('click', function () {
-  const movementsUI = Array.from(document.querySelectorAll('.movements__value'), val=>Number(val.textContent.replace('€', ''))) ;
-  console.log(movementsUI);
-  //const valFinal= movementsUI.map(val=>Number(val.textContent.replace('€', '')))
-  //console.log(valFinal);
+  [...document.querySelectorAll('.movements__row')].forEach(function (row, i) {
+    if (i % 2 === 0) row.style.backgroundColor = 'lightblue'; // 0,2,4,6
+    if (i % 3 === 0) row.style.backgroundColor = 'orange'; // 0,3,6,9
+  });
 });
 
-// which array method to Use
-// start by asking the question, what do i  actually want from this method
+// if you'd like to do anything every nth time, than it's a good idea to use the remainder operator
+// variable % n
 
+// Numeric Sepearors
 
+// diameter of solar system, too many zeros
 
-// we can attach event listeners to any object, it doesn't necessarily have to be a button
+const dia = 287_460_000_000; // you can use undersore to imitate real life so the number is more legible 287,460,000,000
+// we can place underscores anywhere we want in our numbers to parse the numbersd
+console.log(dia); // 287460000000
 
-// Coding challenge number 1
-/*
+// you can place underscore in a floating point number but not near the decimal
+// also can't place underscore t the beginning or the end of the number
+// can't also place two underscores in a row
+// numeric seperators won't work in a string no matter if you convert it to a number
+console.log('243_456'); //NaN same result if we use a parseint function
 
-Julia and Kate are doing a study on dogs. So each of them asked 5 dog owners
-about their dog's age, and stored the data into an array (one array for each). For
-now, they are just interested in knowing whether a dog is an adult or a puppy.
-A dog is an adult if it is at least 3 years old, and it's a puppy if it's less than 3 years
-old.
+console.log(parseInt('243_456')); //243
 
-Your tasks:
-Create a function 'checkDogs', which accepts 2 arrays of dog's ages
-('dogsJulia' and 'dogsKate'), and does the following things:
-1. Julia found out that the owners of the first and the last two dogs actually have
-cats, not dogs! So create a shallow copy of Julia's array, and remove the cat
-ages from that copied array (because it's a bad practice to mutate function
-parameters)
-2. Create an array with both Julia's (corrected) and Kate's data
-3. For each remaining dog, log to the console whether it's an adult ("Dog number 1
-is an adult, and is 5 years old") or a puppy ("Dog number 2 is still a puppy
-�
-")
-4. Run the function for both test datasets
-Test data:
-Data 1: Julia's data [3, 5, 2, 12, 7], Kate's data [4, 1, 15, 8, 3]
-Data 2: Julia's data [9, 16, 6, 8, 3], Kate's data [10, 5, 6, 1, 4]
-Hints: Use tools from all lectures in this section so far �
-GOOD LUCK �
+// let's talk about a special kind of integer introduced in es 2020
+// BigInt
+// primitive data type
 
+console.log(2 ** 53 - 1); // 9007199254740991 // 2 *10^53   .. -1 cuz it starts with 0... only 53 bits are used to store the number the rest is used to store the decimal points etc
+console.log(Number.MAX_SAFE_INTEGER); // 9007199254740991 .. any integer bigger than this is not safe which means it can't be represented accurately
+// if we do calculations bigger than that number than we might loose precision
+// sometimes we might need bigger number than that for eg when interacting with database ids or when interacting with the real 60 bit number
+// for eg we might get some number larger than this from some api but we don't have any way of storing that number
 
-const juliaNew = [9, 16, 6, 8, 3];
-const kateNew = [10, 5, 6, 1, 4];
-const julia1 = [3, 5, 2, 12, 7];
-const kate1 = [4, 1, 15, 8, 3];
+// starting es2020 we have big int
+// big int can store numbers as large as we want no matter how big
 
-const julia2 = julia1.slice(1, -2);
-console.log(julia2);
+console.log(483736373839999938378723876366763n);
+// n at the end transforms a regular number into a bigint number
+// or we can use the BigInt function
 
-const juliaKate = [...julia2, ...kate1];
-const juliaKaty = juliaNew.concat(kateNew);
-console.log(juliaKate);
-console.log(juliaKaty);
+console.log(BigInt(48645464));
 
-const checkdogs = function (juliaKate, juliaKaty) {
-  const dogs = juliaKate || juliaKaty;
-  dogs.forEach(function (val, i) {
-    const des = val < 3 ? 'still a puppy' : 'an adult';
-    console.log(`Dog number${i + 1} is ${des} and is ${val} years old`);
-  });
-};
+// Math...  operators also don't work on bigint
 
+// operations with Big Int
+// all the usual operators work the same
+//+,-,*
+// you can't mix bigint with regular numbers
+// you have to convert the number to big int
+// there are two exceptions to this
+// when using a comparison operator and the plus operators when working with strings
 
+const huge = 256765236576532;
 
+//1 logical operators
 
-checkdogs(juliaKate);
-*/
-/*
+console.log(20n > 15); // true .. so it works as expected
+console.log(20n === 20); // false.. as expected cuz bothe have different types
+console.log(20n == 20); // true... js does the type coercion for us
+console.log(20n == '20'); // true...
 
+//2 Strings concatenations
 
-Coding Challenge #2
-Let's go back to Julia and Kate's study about dogs. This time, they want to convert
-dog ages to human ages and calculate the average age of the dogs in their study.
-Your tasks:
-Create a function 'calcAverageHumanAge', which accepts an arrays of dog's
-ages ('ages'), and does the following things in order:
-1. Calculate the dog age in human years using the following formula: if the dog is
-<= 2 years old, humanAge = 2 * dogAge. If the dog is > 2 years old,
-humanAge = 16 + dogAge * 4
-2. Exclude all dogs that are less than 18 human years old (which is the same as
-keeping dogs that are at least 18 years old)
-3. Calculate the average human age of all adult dogs (you should already know
-from other challenges how we calculate averages �)
-4. Run the function for both test datasets
-Test data:
-§ Data 1: [5, 2, 4, 1, 15, 8, 3]
-§ Data 2: [16, 6, 10, 5, 6, 1, 4]
-GOOD LUCK �z
-*/
+console.log(huge + ' is really big'); // converts the number to string
 
-/*const dogAges = [5, 2, 4, 1, 15, 8, 3];
-const dogAges2 = [16, 6, 10, 5, 6, 1, 4];
+//division
 
-const calcAverageHumanAge = function (ages) {
-  const humanAges = ages.map(function (dogAge) {
-    if (dogAge <= 2) {
-      return dogAge * 2;
-    } else {
-      return 16 + dogAge * 4;
-    }
-  });
-  const adults = humanAges.filter(function (keep) {
-    return keep >= 18;
-  });
+// bigint would just return the integer of the devision operation
 
-  const allAge = adults.reduce(
-    (acc, cval, i, arr) => acc + cval / arr.length,
-    0
-  );
+// fundamentals of date and time
+// dates and times can be a little bit messy and confusing in javascript
 
-  //const averageAge = allAge / humanAges.length;
-  console.log(humanAges);
-  console.log(adults);
-  //console.log(averageAge);
-  console.log(allAge);
-};
-calcAverageHumanAge(dogAges);
+//1 Create a date - 4 ways.. they use the same function but they accept different parameters
 
-const calcAverageHumanAgeChain = function (ages) {
-  return ages
-    .map(dogAge => (dogAge <= 2 ? dogAge * 2 : 16 + dogAge * 4))
-    .filter(adult => adult >= 18)
-    .reduce((acc, curr, i, arr) => acc + curr / arr.length, 0);
-};
-//console.log(ageChain);
-const avg1 = calcAverageHumanAgeChain(dogAges2);
-console.log(avg1);
-
-// we can use the find method to retrieve one element of an array based on a condition
-// find is another method that loops over the array
-const firstWithdrwal = movements.find(mov => mov < 0);
-
-// unlike the filter method the find method would not return the array rather the first element that satisfies the condition
-// fiulter method returns a new array and the find method just the elemet of the array not the array
-// first element of the array for the which the condition in the callback function becomes true
-// first withdrawl
-console.log(movements);
-console.log(firstWithdrwal);
-
-console.log(accounts);
-
-const account = accounts.find(acc => acc.owner === 'Jessica Davis');
-console.log(account); // {owner: 'Jessica Davis', movements: Array(8), interestRate: 1.5, pin: 2222, username: 'jd'}
+//const now = new Date();
 //
+//console.log(now);
+//
+//console.log(new Date(' Fri Jul 29 2022 16:27:33')); // not the best way... consistency
+//
+//console.log(new Date(account1.movementsDates[0])); // z signifies utc without dst
+//
+//console.log(new Date(2037, 10, 19, 15, 23, 5)); // "2037-11-19T14:23:05.000Z"   month in javasript is 0 based //weird
+//// javascript also autocorrects the dates
+//
+//console.log(new Date(0)); // "1970-01-01T00:00:00.000Z"   start of unix time
+//console.log(new Date(3 * 24 * 60 * 60 * 1000)); // 3 days after unix // in js go till milli seconds//
+//
+// these dates are just another special type of objects
+// they have their own methods just like arrays or maps
 
-// in this case it would return the object. as it's array within an array
+// working with dates
 
-let accFor;
-for (const account of accounts) {
-  if (account.owner === 'Steven Thomas Williams') {
-    accFor = account;
-  }
-}
-console.log(accFor);
-*/
+const future = new Date(2037, 10, 19, 15, 23);
+console.log(future);
+console.log(future.getFullYear()); // 2037
+console.log(future.getMonth()); // 10... cuz 0 based
+console.log(future.getDate()); // 19 .. weird
+console.log(future.getDay()); // gwt the number of the day starting from sunday as 0  4
+console.log(future.getHours());
+console.log(future.getMinutes());
+console.log(future.getSeconds());
+console.log(future.toISOString()); // 2037-11-19T14:23:00.000Z
+
+// we can also get time stamp for the date
+// it's the milliseconds based since 1 - 1- 1970
+// time stamp
+console.log(future.getTime()); // 2142253380000
+console.log(new Date(2142253380000)); // milliseconds passed since unix // Thu Nov 19 2037 15:23:00 GMT+0100 (Central European Standard Time)
+
+// we can also get a nicely formatted sting
+
+// time stamp for this moment right now
+console.log(Date.now());
+
+// there are also set versions of all these methods so we can change any variable in the date
+
+//for eg
+
+future.setFullYear(2040);
+console.log(future);
+
+// setMonth etc performs auto corection
